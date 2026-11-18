@@ -1,7 +1,8 @@
+import * as lamejs from 'lamejs';
+
 export async function convertUrlToRealMp3(mediaUrl, onStatus) {
   onStatus('Fetching audio stream...');
 
-  // Try direct fetch first, fallback to proxy if CORS blocks
   let arrayBuffer;
   try {
     const res = await fetch(mediaUrl, { mode: 'cors' });
@@ -18,14 +19,19 @@ export async function convertUrlToRealMp3(mediaUrl, onStatus) {
   const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
 
   onStatus('Encoding real MP3...');
-  const channels = 1; // Mono MP3 is fast, crisp, and ideal for ringtones & edits
+  const channels = 1;
   const sampleRate = audioBuffer.sampleRate;
   const kbps = 128;
 
-  const mp3encoder = new window.lamejs.Mp3Encoder(channels, sampleRate, kbps);
+  // Support both ESM & CJS exports of lamejs
+  const Mp3Encoder = lamejs.Mp3Encoder || lamejs.default?.Mp3Encoder || window.lamejs?.Mp3Encoder;
+  if (!Mp3Encoder) {
+    throw new Error('MP3 encoder failed to load');
+  }
+
+  const mp3encoder = new Mp3Encoder(channels, sampleRate, kbps);
   const floatSamples = audioBuffer.getChannelData(0);
 
-  // Convert Float32 (-1 to 1) to Int16 PCM
   const samples = new Int16Array(floatSamples.length);
   for (let i = 0; i < floatSamples.length; i++) {
     const s = Math.max(-1, Math.min(1, floatSamples[i]));
