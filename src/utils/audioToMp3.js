@@ -1,4 +1,4 @@
-import * as lamejs from 'lamejs';
+import { Mp3Encoder } from '@breezystack/lamejs';
 
 export async function convertUrlToRealMp3(mediaUrl, onStatus) {
   onStatus('Fetching audio stream...');
@@ -22,12 +22,6 @@ export async function convertUrlToRealMp3(mediaUrl, onStatus) {
   const channels = 1;
   const sampleRate = audioBuffer.sampleRate;
   const kbps = 128;
-
-  // Support both ESM & CJS exports of lamejs
-  const Mp3Encoder = lamejs.Mp3Encoder || lamejs.default?.Mp3Encoder || window.lamejs?.Mp3Encoder;
-  if (!Mp3Encoder) {
-    throw new Error('MP3 encoder failed to load');
-  }
 
   const mp3encoder = new Mp3Encoder(channels, sampleRate, kbps);
   const floatSamples = audioBuffer.getChannelData(0);
