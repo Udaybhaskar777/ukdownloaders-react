@@ -1,19 +1,41 @@
 {
+  "id": "/",
   "name": "UK Downloaders",
   "short_name": "UK Downloaders",
   "description": "Download videos, MP3 audio, and thumbnails from Instagram, YouTube, X, and TikTok.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0f1115",
   "theme_color": "#ff0000",
   "orientation": "portrait",
   "icons": [
-    { "src": "/icon-192.png?v=2", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/icon-512.png?v=2", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "/icon-192.png?v=3",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png?v=3",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png?v=3",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ],
   "share_target": {
     "action": "/",
     "method": "GET",
-    "params": { "title": "title", "text": "text", "url": "url" }
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
   }
 }
