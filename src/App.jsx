@@ -10,6 +10,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('videoTab');
   const [history, setHistory] = useState(() => JSON.parse(localStorage.getItem('uk_history')) || []);
   const [downloadingIdx, setDownloadingIdx] = useState(null);
+  const [audioStatus, setAudioStatus] = useState('Converting MP3...');
   const [showPrivacy, setShowPrivacy] = useState(false);
 
   useEffect(() => {
@@ -32,9 +33,11 @@ export default function App() {
   };
 
   const saveToHistory = (url, title, thumbnail) => {
-    const updated = [{ url, title, thumbnail }, ...history.filter((item) => item.url !== url)].slice(0, 10);
-    setHistory(updated);
-    localStorage.setItem('uk_history', JSON.stringify(updated));
+    setHistory((prev) => {
+      const updated = [{ url, title, thumbnail }, ...prev.filter((item) => item.url !== url)].slice(0, 10);
+      localStorage.setItem('uk_history', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const handleExtract = async (e, overrideUrl = null) => {
@@ -68,6 +71,20 @@ export default function App() {
     }
   };
 
+  // --- ANDROID SHARE TARGET & URL PARAM AUTO-EXTRACT ---
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sharedText = params.get('url') || params.get('text') || params.get('title') || '';
+    if (sharedText) {
+      const urlMatch = sharedText.match(/https?:\/\/[^\s]+/);
+      if (urlMatch?.[0]) {
+        setVideoUrl(urlMatch[0]);
+        window.history.replaceState({}, document.title, '/');
+        handleExtract(null, urlMatch[0]);
+      }
+    }
+  }, []);
+
   const handleSmartButton = async () => {
     if (videoUrl.trim() !== '') {
       setVideoUrl('');
@@ -80,8 +97,6 @@ export default function App() {
       }
     }
   };
-
-  const [audioStatus, setAudioStatus] = useState('Converting MP3...');
 
   const handleForceDownload = async (url, filename, isAudio, idx) => {
     setDownloadingIdx(idx);
@@ -322,12 +337,12 @@ export default function App() {
                     <button
                       key={i}
                       type="button"
-                      onClick={() => handleForceDownload(a.url, 'ukdownloaders-audio.m4a', true, `a-${i}`)}
+                      onClick={() => handleForceDownload(a.url, 'ukdownloaders-audio.mp3', true, `a-${i}`)}
                       className="dl-link dl-audio"
                     >
                       <span>
                         <i className={`fas ${downloadingIdx === `a-${i}` ? 'fa-bolt fa-spin' : 'fa-music'}`}></i>{' '}
-                        {downloadingIdx === `a-${i}` ? 'Downloading Audio...' : a.label}
+                        {downloadingIdx === `a-${i}` ? audioStatus : a.label}
                       </span>
                       <span className="size-badge">{a.size}</span>
                     </button>
