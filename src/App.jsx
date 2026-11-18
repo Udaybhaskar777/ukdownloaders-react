@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { convertUrlToRealMp3 } from './utils/audioToMp3';
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
@@ -80,23 +81,46 @@ export default function App() {
     }
   };
 
+  const [audioStatus, setAudioStatus] = useState('Converting MP3...');
+
   const handleForceDownload = async (url, filename, isAudio, idx) => {
     setDownloadingIdx(idx);
+
+    // 1. REAL MP3 CONVERSION (Genuine .mp3 file for ringtones & editors)
+    if (isAudio) {
+      try {
+        await convertUrlToRealMp3(url, (msg) => setAudioStatus(msg));
+      } catch (err) {
+        alert('Could not convert to MP3 directly: ' + err.message);
+      } finally {
+        setDownloadingIdx(null);
+        setAudioStatus('Converting MP3...');
+      }
+      return;
+    }
+
+    // 2. VIDEO (MP4): Direct original stream (Insta Story / WhatsApp Status 100% safe)
     try {
       const response = await fetch(url, { mode: 'cors' });
       const buffer = await response.arrayBuffer();
-      const blob = new Blob([buffer], { type: isAudio ? 'audio/mpeg' : 'video/mp4' });
+      const blob = new Blob([buffer], { type: 'video/mp4' });
       const blobUrl = window.URL.createObjectURL(blob);
 
       const a = document.createElement('a');
       a.href = blobUrl;
-      a.download = filename;
+      a.download = 'ukdownloaders.mp4';
       document.body.appendChild(a);
       a.click();
       a.remove();
       setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
     } catch {
-      window.open(url, '_blank');
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ukdownloaders.mp4';
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
     } finally {
       setDownloadingIdx(null);
     }
@@ -298,12 +322,12 @@ export default function App() {
                     <button
                       key={i}
                       type="button"
-                      onClick={() => handleForceDownload(a.url, 'ukdownloaders.mp3', true, `a-${i}`)}
+                      onClick={() => handleForceDownload(a.url, 'ukdownloaders-audio.m4a', true, `a-${i}`)}
                       className="dl-link dl-audio"
                     >
                       <span>
                         <i className={`fas ${downloadingIdx === `a-${i}` ? 'fa-bolt fa-spin' : 'fa-music'}`}></i>{' '}
-                        {downloadingIdx === `a-${i}` ? 'Downloading MP3...' : a.label}
+                        {downloadingIdx === `a-${i}` ? 'Downloading Audio...' : a.label}
                       </span>
                       <span className="size-badge">{a.size}</span>
                     </button>
